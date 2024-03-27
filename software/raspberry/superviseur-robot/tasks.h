@@ -109,6 +109,9 @@ private:
     void ServerTask(void *arg);
     
     void BatteryTask(void *arg);
+    
+    
+    void MoniAvecRobot(Message* mensage);
      
     /**
      * @brief Thread sending data to monitor.
@@ -157,4 +160,8 @@ private:
 };
 
 #endif // __TASKS_H__ 
+
+
+
+
 

@@ -176,7 +176,7 @@ void Tasks::Run() {
     if (err = rt_task_start(&th_battery, (void(*)(void*)) & Tasks::BatteryTask, this)) {
         cerr << "Error task start: " << strerror(-err) << endl << flush;
         exit(EXIT_FAILURE);
-    }
+    } 
 
     cout << "Tasks launched" << endl << flush;
 }
@@ -404,8 +404,48 @@ void Tasks::MoveTask(void *arg) {
     if (cmpt >= 3){ rt_mutex_acquire(&mutex_robotStarted, TM_INFINITE); 
     robotStarted=0; rt_mutex_release(&mutex_robotStarted); } }*/
 
+// Tarea 8
+void Tasks::MoniAvecRobot(Message* message) {
+    static int cmpt = 0;
+    
+    if(*mensage == MESSAGE_ANSWER_ROBOT_TIMEOUT) {cmpt++;}
+    else{
+      cmpt = 0;}
+    
+   
+    if (cmpt >= 3) {
+        cout << "\nConnection Lost ";
+        WriteInQueue(&q_messageToMon, message);
 
+        rt_mutex_acquire(&mutex_robotStarted, TM_INFINITE);
+        robotStarted = 0;    
+        
+        rt_mutex_release(&mutex_robotStarted);
+    }
+}
 
+// // TASK 9
+// void Tasks::RobotLost(void *arg) {
+//     Message* LostMessage;
+//     
+//     robot.write(robot.clo);
+//     int cmpt = 0;
+//     while (cmpt <= 3) {
+//         Message* mensaje = robot.Write(robot.GetMessage());
+//         cout << "Periodic battery update";
+//        
+//         rt_mutex_acquire(&mutex_robotStarted, TM_INFINITE);
+//         int rs = robotStarted;
+//         rt_mutex_release(&mutex_robotStarted);
+//        
+//         if (rs == 1 and robot.GetMessage() is not error)
+//             cmpt = cmpt;
+//         else
+//             cmpt++;
+//     }
+// }
+
+     // TASK 13
 void Tasks::BatteryTask(void *arg) {
     
     
@@ -433,10 +473,10 @@ void Tasks::BatteryTask(void *arg) {
             rt_mutex_acquire(&mutex_robot, TM_INFINITE);
             
             Batt_lvl = robot.Write(robot.GetBattery());
-            
+             MoniAvecRobot(Batt_lvl);
             rt_mutex_release(&mutex_robot);
             
-            cout << "Battery level:" << Batt_lvl->ToString() << endl << flush;
+            cout << "\nBattery level:" << Batt_lvl->ToString() << endl << flush;
             WriteInQueue(&q_messageToMon, Batt_lvl);
             
             
