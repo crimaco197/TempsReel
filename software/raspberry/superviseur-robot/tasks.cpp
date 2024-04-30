@@ -58,7 +58,7 @@
 
 bool cameraActivated = false ;
 
-Camera * camera = new Camera(sm , 5);
+
 
 
 
@@ -319,7 +319,17 @@ void Tasks::ReceiveFromMonTask(void *arg) {
             cout << msgRcv->ToString() << endl << flush; /* TASK5 :A tester : tu lances les deux monit et supervis , apres fermes monit , un message de connection lost dpoit safficher sur terminal de superviseur*/
             cout << msgRcv;
             exit(-1);
-        } else if (msgRcv->CompareID(MESSAGE_ROBOT_COM_OPEN)) {
+        }else if(msgRcv->CompareID(MESSAGE_ROBOT_COM_OPEN)) { // if(12)
+            
+            rt_sem_v(&sem_openComRobot);
+            
+        } 
+        else if (msgRcv->CompareID(MESSAGE_ROBOT_START_WITHOUT_WD)) {
+            cout << "starting robot..." << endl << flush;
+            rt_sem_v(&sem_startRobot);
+        }
+        
+        else if (msgRcv->CompareID(MESSAGE_CAM_OPEN)) {
             bool statut = camera.Open();
             if(statut){
                 cameraActivated = true ;
@@ -329,7 +339,7 @@ void Tasks::ReceiveFromMonTask(void *arg) {
                 monitor.Write(new Message(MESSAGE_ANSWER_NACK)) ;
                 
             }
-        }else if (msgRcv->CompareID(MESSAGE_ROBOT_COM_CLOSE)) { 
+        }else if (msgRcv->CompareID(MESSAGE_CAM_CLOSE )) { 
                 cameraActivated = false ;
                 camera.Close();
                 bool statut = camera.IsOpen();
@@ -344,6 +354,7 @@ void Tasks::ReceiveFromMonTask(void *arg) {
             rt_mutex_acquire(&mutex_WatchDog , TM_INFINITE);
             WatchDog = 0 ;
             rt_mutex_release(&mutex_WatchDog );
+            cout << "starting robot" << endl << flush;
         
             rt_sem_v(&sem_startRobot);
         } else if (msgRcv->CompareID(MESSAGE_ROBOT_START_WITH_WD)) {
@@ -416,7 +427,7 @@ void Tasks::StartRobotTask(void *arg) {
     /* The task startRobot starts here                                                    */
     /**************************************************************************************/
     while (1) {
-
+        cout << "waiting in StartRobotTask" << endl << flush;
         Message * msgSend;
         rt_sem_p(&sem_startRobot, TM_INFINITE);
         
@@ -595,42 +606,46 @@ void Tasks::BatteryTask(void *arg) {
 
 void Tasks::CloseCamera(void * arg){
     
-    int statuts ;
-    int com_err;
-    cout << "start" << __PRETTY_FUNCTION__ << endl << flush ;
     
-    rt_sem_p(&sem_CloseCamera, TM_INFINITE);
+int rs;
+
+    cout << "Start " << __PRETTY_FUNCTION__ << endl << flush;
+    // Synchronization barrier (waiting that all tasks are starting)
+    rt_sem_p(&sem_barrier, TM_INFINITE);
+    
+    /**************************************************************************************/
+    /* The task ControlCamera starts here                                                  */
+    /**************************************************************************************/
+
+    // Mise à jour de la périodicité
     rt_task_set_periodic(NULL, TM_NOW, 10000000);
-    
-    
-    while(1){
-        
+
+
+    while (1) {
         rt_task_wait_period(NULL);
         
+        // Mutex pour rs
         rt_mutex_acquire(&mutex_robotStarted, TM_INFINITE);
-        int rs= robotStarted;
+        rs = robotStarted;
         rt_mutex_release(&mutex_robotStarted);
-        
-        if(cameraActivated){
-            
-            try{
+
+        if (cameraActivated) {
+            try {
                 
                 MessageImg * msg = new MessageImg();
                 Img image = camera.Grab();
-                msg->SetID(MESSAGE_CAM_IMAGE);
-                msg->SetImage(&image);
-                WriteInQueue(&q_messageToMon, msg);
-            }catch(const cv::Exception & e){
-                cerr <<e.what() <<endl;
+                    msg->SetID(MESSAGE_CAM_IMAGE);
+                    msg->SetImage(&image);
+                    WriteInQueue(&q_messageToMon, msg);
+            
+            }catch( const cv::Exception & e ) {
+                cerr << e.what() << endl;
+
             }
         }
-        
-        rt_mutex_acquire(&mutex_CloseCamera, TM_INFINITE);
-        camera.Close();
-        rt_mutex_release(&mutex_CloseCamera);
-        
-        
     }
+
+
 
 }
 /**
