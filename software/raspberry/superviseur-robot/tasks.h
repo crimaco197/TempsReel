@@ -64,8 +64,10 @@ private:
     /**********************************************************************/
     ComMonitor monitor;
     ComRobot robot;
+    Camera camera;
     int robotStarted = 0;
     int move = MESSAGE_ROBOT_STOP;
+    int WatchDog = 0 ;
     
     /**********************************************************************/
     /* Tasks                                                              */
@@ -77,6 +79,8 @@ private:
     RT_TASK th_startRobot;
     RT_TASK th_move;
     RT_TASK th_battery;
+    RT_TASK th_WatchD;
+    RT_TASK th_CloseCamera ;
     
     /**********************************************************************/
     /* Mutex                                                              */
@@ -85,6 +89,10 @@ private:
     RT_MUTEX mutex_robot;
     RT_MUTEX mutex_robotStarted;
     RT_MUTEX mutex_move;
+    RT_MUTEX mutex_WatchDog;
+    RT_MUTEX mutex_comRobot;
+    RT_MUTEX mutex_CloseCamera;
+    
 
     /**********************************************************************/
     /* Semaphores                                                         */
@@ -93,6 +101,10 @@ private:
     RT_SEM sem_openComRobot;
     RT_SEM sem_serverOk;
     RT_SEM sem_startRobot;
+    RT_SEM sem_WatchDog_rst;
+    RT_SEM sem_CloseCamera;
+    
+    
 
     /**********************************************************************/
     /* Message queues                                                     */
@@ -110,8 +122,13 @@ private:
     
     void BatteryTask(void *arg);
     
+    void Robot_WatchD(void* args);
+   
+   
+    void CloseCamera(void * arg);
     
-    void MoniAvecRobot(Message* mensage);
+    
+    void MoniAvecRobot(Message* message);
      
     /**
      * @brief Thread sending data to monitor.
@@ -160,7 +177,6 @@ private:
 };
 
 #endif // __TASKS_H__ 
-
 
 
 
