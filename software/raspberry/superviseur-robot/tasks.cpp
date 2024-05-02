@@ -895,9 +895,9 @@ std::cout << "Verificando si la lista de robots está vacía..." << std::endl;
 std::cout << "Tamaño de la lista de robots: " << robots.size() << std::endl;
 // Verifica si arena no es nulo antes de usarlo
 if (!arena.IsEmpty()) {
-    std::cout << "El objeto arena no es nulo." << std::endl;
+    std::cout << "Arena is not empty" << std::endl;
 } else {
-    std::cout << "El objeto arena es nulo." << std::endl;
+    std::cout << "Arena is empty" << std::endl;
 }
 
 
