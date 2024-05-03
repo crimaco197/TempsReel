@@ -65,11 +65,11 @@ private:
     /**********************************************************************/
     ComMonitor monitor;
     ComRobot robot;
-    Camera camera;
+    Camera camera;    // USAR ESTA VARIABLE
     int robotStarted = 0;
     int move = MESSAGE_ROBOT_STOP;
     int WatchDog = 0 ;
-    Camera cam;
+    Camera cam;       // BORRAR
     Arena arena;
     Arena arena_saved;
     bool arena_req = false;
@@ -79,7 +79,7 @@ private:
     bool findRobot;
     Img img =cam.Grab() ;
     bool a = true ;
-   Position robotPos;
+    Position robotPos;
     /**********************************************************************/
     /* Tasks                                                              */
     /**********************************************************************/
